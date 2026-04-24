@@ -156,4 +156,26 @@ public class TasksController : ControllerBase {
             .ToListAsync();
         return Ok(overdue);
     }
+    [HttpPatch("complete-all")]
+    public async Task<ActionResult> CompleteAllTasks() {
+        var count = await _db.Tasks
+            .Where(t => !t.IsCompleted)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.IsCompleted, true));
+        return Ok(new {
+            Message = "Массовое обновление выполнено",
+            Updated = count
+        });
+    }
+    [HttpDelete("completed")]
+    public async Task<ActionResult> DeleteCompletedTasks() {
+        var tasks = await _db.Tasks
+            .Where(t => t.IsCompleted)
+            .ToListAsync();
+        _db.Tasks.RemoveRange(tasks);
+        await _db.SaveChangesAsync();
+        return Ok(new {
+            Message = "Выполненные задачи удалены",
+            Deleted = tasks.Count
+        });
+    }
 }
